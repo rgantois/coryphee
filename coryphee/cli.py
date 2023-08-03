@@ -2,20 +2,16 @@ import signal
 import argparse
 import os
 import sys
-from coryphee.coryphee import Recording, Action, CORYPHEE_DIR
+import functools
+from coryphee.recording import Recording, Action, CORYPHEE_DIR
+
+def cleanup(sig, frame, rec=None):
+    if rec is not None:
+        rec.cleanup()
+    print("Cleaned up action recorders")
+    sys.exit(0)
 
 def cli():
-    """
-    Trap SIGINT so we don't quit without 
-    shutting down the event recorders
-    """
-    def cleanup(sig, frame):
-        Action.stop()
-        print("Cleaned up action recorders")
-        sys.exit(0)
-
-    signal.signal(signal.SIGINT, cleanup)
-    signal.signal(signal.SIGTERM, cleanup)
 
     parser = argparse.ArgumentParser(prog="Coryphee",
             description="Record and replay UI mouse and keyboard actions",
@@ -33,13 +29,23 @@ def cli():
     args = parser.parse_args()
 
     rec = Recording()
+
+    """
+    Trap SIGINT so we don't quit without 
+    shutting down the event recorders
+    """
+    signal.signal(signal.SIGINT,
+            functools.partial(cleanup, rec=rec))
+    signal.signal(signal.SIGTERM,
+            functools.partial(cleanup, rec=rec))
+
     cmd = args.command
     if cmd == "list":
-        print(f"Recordings stored in {CORYPHEE_DIR}:")
+        print(f"Recordings stored in {CORYPHEE_DIR}:\n")
         for path in os.listdir(CORYPHEE_DIR):
             name = os.path.splitext(path)[0]
             rec.load(name)
-            print(f"name: {name}\non:{rec.date}\ncomment:{rec.comment} ")
+            print(f"name: {name}\non: {rec.date}\ncomment: {rec.comment}\n")
         sys.exit(0)
 
     if not args.name:
@@ -60,7 +66,7 @@ def cli():
         if os.path.exists(path):
             os.remove(path)
         else:
-            print("File {path} not found")
+            print(f"File {path} not found")
             sys.exit(-1)
 
 
