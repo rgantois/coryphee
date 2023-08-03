@@ -40,6 +40,12 @@ class Action():
     def replay_stop(rec):
         return
 
+    def save_state(rec):
+        return
+
+    def restore_state(rec):
+        return
+
     def replay(self):
         # Replay a single action
         return
@@ -59,6 +65,11 @@ class KeyboardAction(Action):
             "key": key,
         }))
 
+    def on_press_replay(key, rec=None):
+        # Keypress handler for replays
+        if key == keyboard.Key.esc:
+            rec.signal_pause = True
+
     def on_release(key, rec=None):
         rec.push_action(KeyboardAction(BaseAction.KEYRELEASE, {
             "key": key,
@@ -72,7 +83,7 @@ class KeyboardAction(Action):
                 rec=rec)
         )
         KeyboardAction.keyboard_rec.start()
-        return 
+        return
 
     def record_stop(rec):
         if KeyboardAction.keyboard_rec is not None:
@@ -84,7 +95,7 @@ class KeyboardAction(Action):
         # Start keyboard listener so that emergency
         # stop signal can be received
         KeyboardAction.keyboard_rec = keyboard.Listener(
-            on_press=functools.partial(KeyboardAction.on_press,
+            on_press=functools.partial(KeyboardAction.on_press_replay,
                 rec=rec),
             )
 
@@ -103,6 +114,7 @@ class MouseAction(Action):
 
     mouse_ctrl = None
     mouse_rec = None
+    position = None
 
     # Class methods
 
@@ -143,6 +155,12 @@ class MouseAction(Action):
 
     def replay_start(rec):
         MouseAction.mouse_ctrl = mouse.Controller()
+
+    def save_state(rec):
+        MouseAction.position = MouseAction.mouse_ctrl.position
+
+    def restore_state(rec):
+        MouseAction.mouse_ctrl.position = MouseAction.position
 
     # Instance methods
 

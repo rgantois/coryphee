@@ -31,7 +31,7 @@ def cli():
     rec = Recording()
 
     """
-    Trap SIGINT so we don't quit without 
+    Trap SIGINT so we don't quit without
     shutting down the event recorders
     """
     signal.signal(signal.SIGINT,

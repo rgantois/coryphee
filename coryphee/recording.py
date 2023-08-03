@@ -5,6 +5,7 @@ import sys
 import os
 
 from coryphee.action import Action, MouseAction, KeyboardAction
+from coryphee.pause_menu import PauseMenu
 
 CORYPHEE_DIR = os.path.expanduser("~/.local/share/coryphee")
 
@@ -17,6 +18,7 @@ class Recording():
             KeyboardAction,
         ]
         self.cur_action = 0
+        self.signal_pause = False
         self.signal_stop = False
         self.comment = ""
         self.date = ""
@@ -50,7 +52,7 @@ class Recording():
         if duration == 0:
             # If no duration is specified, the keyboard
             # listener will stop everything when ESC is detected
-            while not self.signal_stop:
+            while not self.signal_pause and not self.signal_stop:
                 time.sleep(0.2)
         else:
             time.sleep(duration)
@@ -70,12 +72,45 @@ class Recording():
            self.comment = obj["comment"]
         self.date = self.get_date()
 
+    def cut_recording(self):
+        if self.actions == []:
+            return
+        cropped = self.actions[0:self.cur_action]
+        self.actions = cropped
+        self.save(self.name, self.comment)
+
+    def handle_commands(self, commands: list) -> str:
+        feedback = ""
+        for (cmd, args) in commands:
+            if cmd == "stop":
+                for action_type in self.action_types:
+                    action_type.replay_stop(self)
+                break
+            elif cmd == "cut":
+                self.cut_recording()
+                feedback += "Recording cut"
+        return feedback
+
+    def pause(self):
+        for action_type in self.action_types:
+            action_type.save_state(self)
+
+        self.pause_menu = PauseMenu()
+        #process user commands
+        self.handle_commands(self.pause_menu.commands)
+
+        for action_type in self.action_types:
+            action_type.restore_state(self)
+
     def replay_all(self, replay_speed: float):
         for action_type in self.action_types:
             action_type.replay_start(self)
 
         for (index, action) in enumerate(self.actions):
             self.cur_action = index
+            if self.signal_pause:
+                self.pause()
+                self.signal_pause = False
             if self.signal_stop:
                 for action_type in self.action_types:
                     action_type.replay_stop(self)
