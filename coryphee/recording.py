@@ -60,7 +60,13 @@ class Recording():
         for action_type in self.action_types:
             action_type.record_stop(self)
 
+    def warn_repeats(self):
+        if self.actions != [] and self.actions[-1].repeats:
+            print("Warning: recording ends with an unreleased repeating action (e.g. a keypress)")
+            print("This means that the last action could loop when replayed")
+
     def save(self, name: str, comment: str):
+        self.warn_repeats()
         with open(f"{CORYPHEE_DIR}/{name}.pickle", "wb") as file:
             pickle.dump({"actions": self.actions, "comment": comment}, file)
 

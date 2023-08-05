@@ -5,7 +5,7 @@ import functools
 import enum
 import yaml
 
-#base action kinds
+# Base action kinds
 BaseAction = enum.Enum("BaseAction", [
 "MOUSEUP",
 "MOUSEDOWN",
@@ -22,6 +22,11 @@ class Action():
         self.relative_time = None
         self.kind = kind
         self.data = data
+        """
+        Actions that repeat if not released
+        e.g. key down, mouse down
+        """
+        self.repeats = False
 
     def __str__(self):
         return f"Action of kind {self.kind}\n"\
@@ -103,6 +108,10 @@ class KeyboardAction(Action):
 
     # Instance methods
 
+    def __init__(self, kind: int, data: dict):
+        super(KeyboardAction, self).__init__(kind, data)
+        self.repeats = kind == BaseAction.KEYPRESS
+
     def replay(self):
         kind = self.kind
         if kind == BaseAction.KEYPRESS:
@@ -163,6 +172,10 @@ class MouseAction(Action):
         MouseAction.mouse_ctrl.position = MouseAction.position
 
     # Instance methods
+
+    def __init__(self, kind: int, data: dict):
+        super(MouseAction, self).__init__(kind, data)
+        self.repeats = kind == BaseAction.MOUSEDOWN
 
     def replay(self):
         x = self.data["x"]
