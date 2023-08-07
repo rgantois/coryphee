@@ -143,7 +143,7 @@ class MouseAction(Action):
 		}))
 
 	def on_scroll(x, y, dx, dy, rec=None):
-		self.push_action(MouseAction(BaseAction.MOUSESCROLL, {
+		rec.push_action(MouseAction(BaseAction.MOUSESCROLL, {
 			"x": x,
 			"y": y,
 			"dx": dx,

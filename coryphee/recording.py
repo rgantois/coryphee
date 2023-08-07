@@ -88,11 +88,11 @@ class Recording():
 		feedback = ""
 		for (cmd, args) in commands:
 			if cmd == "stop":
-				for action_type in self.action_types:
-					action_type.replay_stop(self)
+				self.signal_stop = True
 				break
 			elif cmd == "cut":
 				self.cut_recording()
+				self.signal_stop = True
 				feedback += "Recording cut"
 		return feedback
 
@@ -103,6 +103,9 @@ class Recording():
 		self.pause_menu = PauseMenu()
 		#process user commands
 		self.handle_commands(self.pause_menu.commands)
+
+		if self.signal_stop:
+			return
 
 		for action_type in self.action_types:
 			action_type.restore_state(self)
@@ -119,6 +122,7 @@ class Recording():
 			if self.signal_stop:
 				for action_type in self.action_types:
 					action_type.replay_stop(self)
+				return
 			time.sleep(action.relative_time / replay_speed)
 			action.replay()
 

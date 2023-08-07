@@ -15,7 +15,6 @@ class PauseMenu():
 			default=True)],
 		[sg.Radio("Cut recording here", "RADIO_COMMAND", key="action_cut")],
 		[sg.Button("Apply"), sg.Button("Done")],
-		[self.feedback],
 		]
 
 		self.window = sg.Window("Coryphee", self.layout)
@@ -31,8 +30,6 @@ class PauseMenu():
 				if self.stop:
 					self.window.close()
 					break
-				self.feedback.update({"visible": True})
-				self.feedback.update("feedback")
 
 	def push_command(self, values: dict):
 		args = []
