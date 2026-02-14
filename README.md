@@ -1,3 +1,5 @@
+**Note:** This project is no longer actively maintained.
+
 # Coryphee
 Record and replay mouse and keyboard actions
 
